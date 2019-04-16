@@ -4,41 +4,54 @@ gen = require("gen") -- подключение модуля, генерирую�
 parse = require("parse") -- подключения модуля, парсирующего буква-символ/символ-буква
 
 alphabetFileName = "alphabet.txt"
-gammaFileName = "gamma.gam"
-inputFileName = "input.txt"
-cipherFileName = "cipher.ciph"
-decryptFileName = "decrypt.dec"
-
 alphabet = wwf.read(alphabetFileName) -- получение алфавита
 
-print("What do you want?") -- выбор пользователя
-print("1: Encrypt")
-print("2: Decrypt")
-print("3: Delete all files")
-choice = io.read("*number")
+operation = arg[1]
+filePath = arg[2]
+gammaPath = arg[3]
+outputPath = arg[4]
 
-if choice == 1 then
+if operation == "c" then
+    inputFileName = filePath
+    outputFileName = outputPath
+    gammaFileName = gammaPath
+
+    defaultGammaFileName = "gammaFile.txt"
+    defaultOutputFileName = "cryptFile.txt"
+
     input = wwf.read(inputFileName) -- получение исходного текста
-    gamma = gen.gam(string.len(input), string.len(alphabet)) -- генерация гаммы
+
+    if gammaFileName ~= "^" then
+        gammaFromFile = parse.ReachLen(wwf.read(gammaFileName),string.len(input)) -- считывание гаммы из файла, предварительно достигшего нужной длины
+        gamma = parse.CharToNumb(alphabet, gammaFromFile) -- парсинг его в таблицу
+    else
+        gammaFileName = defaultGammaFileName -- установка имени файла гаммы в дефолтное значение
+        gamma = gen.gam(string.len(input), string.len(alphabet)) -- генерация гаммы
+        wwf.write(gammaFileName, parse.NumbToChar(alphabet, gamma)) -- запись гаммы в файл как посл-сть букв
+    end
+
+    if outputFileName == "^" then
+        outputFileName = defaultOutputFileName -- установка имени файла выходного в дефолтное значение
+    end
+
     cipher = crypt.encrypt(alphabet, input, gamma) -- шифрование текста
-    wwf.write(gammaFileName, parse.NumbToChar(alphabet, gamma)) -- запись гаммы в файл как посл-сть букв
-    wwf.write(cipherFileName, cipher) -- запись шифрограммы
-elseif choice == 2 then
-    gammaStr = wwf.read(gammaFileName) -- получение гаммы
-    cipher = wwf.read(cipherFileName) -- получение шифрограммы
-    encryptMessage = crypt.decrypt(alphabet, cipher, parse.CharToNumb(alphabet, gammaStr)) -- дешифрование шифрограммы
-    wwf.write(decryptFileName, encryptMessage) -- запись расшифрованного текста в файл
-elseif choice == 3 then
-    os.remove(gammaFileName)
-    os.remove(cipherFileName)
-    os.remove(decryptFileName)
-else
-    print("Unknown command")
+    wwf.write(outputFileName, cipher) -- запись шифрограммы
+
+elseif operation == "de" then
+    inputFileName = filePath
+    gammaFileName = gammaPath
+    outputFileName = outputPath
+
+    cipher = wwf.read(inputFileName) -- получение шифрограммы
+    gammaStr = parse.ReachLen(wwf.read(gammaFileName), string.len(cipher)) -- получение гаммы
+    decryptMessage = crypt.decrypt(alphabet, cipher, parse.CharToNumb(alphabet, gammaStr)) -- дешифрование шифрограммы
+    wwf.write(outputFileName, decryptMessage) -- запись расшифрованного текста в файл
+elseif operation == "help" then -- вывод помощи 
+    print("<operation> <filename> <gammafile / '^'> <outputfile>")
+    print("Operation:")
+    print(" Encrypt: 'c'")
+    print(" Decrypt: 'de'")
+    print("Filename - your file with data")
+    print("Gammafile - your file with gamma (if you have)")
+    print("Outputfile - file to record the result of the command")
 end
-
-
---[[ do_ = arg[1]
-io.write(do_)
-if do_ == "c" then
-    io.write("crypt")
-end ]]

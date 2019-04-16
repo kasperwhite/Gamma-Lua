@@ -33,4 +33,16 @@ function parse.NumbToChar(abc, squen)
     return str
 end
 
+function parse.ReachLen(str, len)
+    if string.len(str) > len then
+        return string.sub(str, 1, len)
+    else
+        strForConcat = ""
+        while string.len(strForConcat) < len do
+            strForConcat = strForConcat .. str
+        end
+        return string.sub(strForConcat, 1, len)
+    end
+end
+
 return parse
